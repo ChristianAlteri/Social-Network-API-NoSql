@@ -33,7 +33,7 @@ const { isEmail } = require('validator')
 
 // Create a virtual reactionCount` that returns the friends.length. We can utilise the array method .length
 userSchema
-  .virtual('reactionCount')
+  .virtual('friendCount')
   // Getter
   .get(function () {
     return this.friends.length;

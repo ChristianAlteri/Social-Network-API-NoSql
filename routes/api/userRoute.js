@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const User = require('../../models/User')
-const Thought = require('../../models/Thought')
+const { Thought, Reaction } = require('../../models/Thought')
 const { Schema, model } = require('mongoose');
+const { validateFriendship } = require('../../helper/validateFriendship')
 
 // Get users
 router.get('/users', async (req, res) => {
@@ -70,5 +71,45 @@ router.delete('/users/:userId', async (req, res) => {
     res.status(500).json(error);
   }
 });
+
+// Add an existing user to an existing users friend list 
+
+router.put('/users/:userId/friends/:friendId', validateFriendship, async (req, res) => {
+  // deconstruct from return of validateFriendship
+  try {
+    const { user, friend } = req;
+   
+    // perform put request on data 
+    user.friends.push(friend);
+    await user.save()
+    return res.json({ message: 'Friend added successfully', user });
+
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// delete from friends array
+router.delete('/users/:userId/friends/:friendId', validateFriendship, async (req, res) => {
+  
+  try {
+    const { user, friend } = req
+
+    // Validate the request
+    if (!user.friends.includes(friend._id)) {
+      // Check if the friendId exists in the user's friends array
+      return res.status(400).json({ error: 'Friend not found in user\'s friend list' });
+    }
+
+    // if all the validators pass then we can pull the friend out of the array
+    user.friends.pull(friend._id)
+    await user.save()
+    return res.json({ msg: 'friend removed successfully', user})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Internal server error' });
+}
+});
+
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const User = require('../../models/User')
 const { Thought, Reaction } = require('../../models/Thought')
+const { validateReaction } = require('../../helper/validateReaction')
 
 // Get all thoughts
 router.get('/thoughts', async (req, res) => {
@@ -68,6 +69,23 @@ router.delete('/thoughts/:thoughtId', async (req, res) => {
     res.json({ message: 'Thought deleted successfully :(', deletedThought });
   } catch (error) {
     res.status(500).json(error);
+  }
+});
+
+// create a reaction
+router.put('/thoughts/:thoughtId/reactions', validateReaction, async (req, res) => {
+  // deconstruct from return of validateFriendship
+  try {
+    const { newReaction, thought } = req;
+   
+    // perform put request on data 
+    thought.reactions.push(newReaction);
+    await thought.save()
+    return res.json({ message: 'reaction added successfully', thought });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

@@ -3,8 +3,7 @@ const moment = require('moment')
 
 const reactionSchema = new Schema({
   reactionId: {
-    type: Schema.Types.ObjectId,
-    default: new Schema.Types.ObjectId(),
+    type: Schema.Types.ObjectId, 
   },
   reactionBody: {
     type: String,
@@ -48,7 +47,6 @@ const thoughtSchema = new Schema({
 
 
   const Reaction = model('Reaction', reactionSchema);
-
   const Thought = model('Thought', thoughtSchema);
 
   module.exports = { Thought, Reaction };

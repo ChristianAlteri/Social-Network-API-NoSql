@@ -38,7 +38,15 @@ const thoughtSchema = new Schema({
       required: true,
     },
     reactions: [reactionSchema]
-  });
+  },
+  {
+    // Do the same as you did in user to allow mongoos to show you the functions retunr in the json object
+    toJSON: {
+      virtuals: true,
+    },
+    id: false,
+  }
+  );
 
   thoughtSchema
     .virtual('reactionCount')

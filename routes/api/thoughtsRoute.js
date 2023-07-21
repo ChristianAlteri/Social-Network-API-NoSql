@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const User = require('../../models/User')
 const { Thought, Reaction } = require('../../models/Thought')
-const { validateReaction } = require('../../helper/validateReaction')
+
 
 // Get all thoughts
 router.get('/thoughts', async (req, res) => {
@@ -73,14 +73,30 @@ router.delete('/thoughts/:thoughtId', async (req, res) => {
 });
 
 // create a reaction
-router.put('/thoughts/:thoughtId/reactions', validateReaction, async (req, res) => {
-  // deconstruct from return of validateFriendship
+router.put('/thoughts/:thoughtId/reactions', async (req, res) => {
+  // deconstruct what you need
+  const { thoughtId } = req.params;
+
   try {
-    const { newReaction, thought } = req;
-   
-    // perform put request on data 
-    thought.reactions.push(newReaction);
-    await thought.save()
+    const newReaction = {
+      reactionBody: req.body.reactionBody,
+      username: req.body.username,
+    };
+
+    const thought = await Thought.findByIdAndUpdate(
+      thoughtId,
+      { $push: { reactions: newReaction } },
+      { new: true }
+    );
+
+    // Validate the request
+    if (!thought) {
+      return res.status(404).json({ error: 'User or friend not found' });
+    }
+
+    // Perform put request on data
+    // thought.reactions.push(newReaction);
+    await thought.save();
     return res.json({ message: 'reaction added successfully', thought });
 
   } catch (error) {
@@ -88,5 +104,42 @@ router.put('/thoughts/:thoughtId/reactions', validateReaction, async (req, res) 
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+  // delete reaction
+  router.delete('/thoughts/:thoughtId/reactions/:reactionId', async (req, res) => {
+    const { thoughtId, reactionId } = req.params;
+
+    try {
+      const thought = await Thought.findById(thoughtId);
+
+      // Check if the thought exists
+      if (!thought) {
+        return res.status(404).json({ error: 'Thought not found' });
+      }
+
+      // Find the index of the reaction with the given reactionId
+      const reactionIndex = thought.reactions.findIndex(
+        (reaction) => reaction._id.toString() === reactionId
+      );
+
+      // Check if the reaction exists
+      if (reactionIndex === -1) {
+        return res.status(404).json({ error: 'Reaction not found' });
+      }
+
+      // Remove the reaction from the reactions array
+      thought.reactions.splice(reactionIndex, 1);
+
+      // Save the updated thought
+      await thought.save();
+
+      return res.json({ message: 'Reaction deleted successfully', thought });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+
 
 module.exports = router;

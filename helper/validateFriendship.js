@@ -3,6 +3,8 @@ const User = require('../models/User')
 const { Thought, Reaction } = require('../models/Thought')
 const { Schema, model } = require('mongoose');
 
+
+// I extracted this because we perform he if statements in both friend routes.
 const validateFriendship = async (req, res, next) => {
     const { userId, friendId } = req.params;
   
